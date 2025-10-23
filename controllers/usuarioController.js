@@ -54,7 +54,7 @@ const updateUsuario = async (request, response) => {
 const deleteUsuario = async (request, response) => {
     const id = parseInt(request.params.id);
     await deleteUsuarioDB(id)
-        .then(() => response.status(204).json({ 
+        .then(() => response.status(200).json({ 
             status: "success", 
             message: `Usuário de ID ${id} excluído com sucesso.`
         }))

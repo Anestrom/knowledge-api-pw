@@ -4,10 +4,10 @@ const { getMateriasPorUsuario, createMateriaParaUsuario, updateMateriaTipoUsuari
 
 const rotasUsuarioMateria = new Router();
 
-rotasUsuarioMateria.route('/usuario/materia')
+rotasUsuarioMateria.route('/usuariomateria')
    .post(createMateriaParaUsuario)
 
-rotasUsuarioMateria.route('/usuario/materia/:id')
+rotasUsuarioMateria.route('/usuariomateria/:id')
    .get(getMateriasPorUsuario)
    .put(updateMateriaTipoUsuario)
    .delete(deleteMateriaDeUsuario)

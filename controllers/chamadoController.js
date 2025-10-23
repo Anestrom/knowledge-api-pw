@@ -83,7 +83,7 @@ const updateFinalizarChamado = async (request, response) => {
 const deleteChamado = async (request, response) => {
     const id = parseInt(request.params.id);
     await deleteChamadoDB(id)
-        .then(() => response.status(204).json({
+        .then(() => response.status(200).json({
             status: "success", 
             message: `Chamado de ID ${id} excluído.`
         }))

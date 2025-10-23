@@ -50,7 +50,7 @@ const updateMateriaTipoUsuario = async (request, response) => {
 const deleteMateriaDeUsuario = async (request, response) => {
     const id = parseInt(request.params.id);
     await deleteMateriaDeUsuarioDB(id)
-        .then(() => response.status(204).json({
+        .then(() => response.status(200).json({
             status: "success", 
             message: `Matéria removida do perfil.`
         }))

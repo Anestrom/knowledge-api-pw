@@ -58,9 +58,9 @@ const getMateriasPorUsuarioDB = async (id_user) => {
     }
 };
 
-const updateMateriaTipoUsuarioDB = async ({ id, id_user, new_type }) => {
+const updateMateriaTipoUsuarioDB = async ({ id, id_user, user_type }) => {
     try {
-        if (new_type !== 'Mentor' && new_type !== 'Aprendiz') {
+        if (user_type !== 'Mentor' && user_type !== 'Aprendiz') {
             throw new Error("Novo tipo de usuário inválido.");
         }
 
@@ -70,7 +70,7 @@ const updateMateriaTipoUsuarioDB = async ({ id, id_user, new_type }) => {
             WHERE id = $1 AND id_user = $2
             RETURNING *;
         `;
-        const { rows } = await pool.query(query, [id, id_user, new_type]);
+        const { rows } = await pool.query(query, [id, id_user, user_type]);
         
         if (rows.length === 0) {
             throw new Error("Associação de matéria não encontrada para atualização.");

@@ -59,7 +59,7 @@ const updateMateria = async (request, response) => {
 const deleteMateria = async (request, response) => {
     const id = parseInt(request.params.id);
     await deleteMateriaDB(id)
-        .then(() => response.status(204).json({ // 204 No Content
+        .then(() => response.status(200).json({ 
             status: "success", 
             message: `Matéria de ID ${id} excluída com sucesso.`
         }))

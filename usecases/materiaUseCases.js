@@ -46,7 +46,7 @@ const createNovaMateriaDB = async ({ nome }) => {
         
         const newSubject = rows[0];
 
-        return new Subject(newSubject.id, newSubject.nome);
+        return new Materia(newSubject.id, newSubject.nome);
         
     } catch (err) {
         if (err.code === '23505') { 
@@ -71,7 +71,7 @@ const updateMateriaDB = async ({ id, nome }) => {
         }
         
         const updatedSubject = rows[0];
-        return new Subject(updatedSubject.id, updatedSubject.nome);
+        return new Materia(updatedSubject.id, updatedSubject.nome);
         
     } catch (err) {
         if (err.code === '23505') { 
