@@ -9,15 +9,15 @@ const createNovoChamadoDB = async ({ id_aprendiz, id_materia, localizacao, duvid
             RETURNING *;
         `;
         const { rows } = await pool.query(query, [id_aprendiz, id_materia, localizacao, duvida_detalhes]);
-        
+
         const chamado = rows[0];
 
         return new Chamado(
-            chamado.id, chamado.id_aprendiz, chamado.id_mentor, chamado.id_materia, 
-            chamado.localizacao, chamado.duvida_detalhes, chamado.status, 
+            chamado.id, chamado.id_aprendiz, chamado.id_mentor, chamado.id_materia,
+            chamado.localizacao, chamado.duvida_detalhes, chamado.status,
             chamado.data_abertura, chamado.data_fechamento
         );
-        
+
     } catch (err) {
         throw new Error("Erro ao abrir chamado. Verifique IDs de aprendiz e matéria: " + err.message);
     }
@@ -27,31 +27,38 @@ const getChamadosAbertosDB = async () => {
     try {
         const query = `
             SELECT 
-                c.id, c.id_aprendiz, u.nome AS nome_aprendiz, 
-                c.id_materia, s.nome AS nome_materia, 
-                c.localizacao, c.duvida_detalhes, c.data_abertura, c.status
+                c.id, c.id_aprendiz, 
+                u_aprendiz.nome AS nome_aprendiz, 
+                c.id_mentor, u_mentor.nome AS mentor_name,
+                c.id_materia, s.nome AS nome_materia,
+                c.status, c.localizacao, c.duvida_detalhes, c.data_abertura, c.data_fechamento
             FROM 
                 chamado c
             JOIN 
-                usuario u ON c.id_aprendiz = u.id
+                usuario u_aprendiz ON c.id_aprendiz = u_aprendiz.id
+            LEFT JOIN 
+                usuario u_mentor ON c.id_mentor = u_mentor.id
             JOIN 
                 materia s ON c.id_materia = s.id
-            WHERE 
+            WHERE
                 c.status = 'Aberto'
             ORDER BY 
                 c.data_abertura DESC;
         `;
         const { rows } = await pool.query(query);
-        
+
         return rows.map(row => ({
             id: row.id,
-            aprendiz: { id: row.id_aprendiz, nome: row.aprendiz_name },
-            materia: { id: row.id_materia, nome: row.materia_name },
+            aprendiz: { id: row.id_aprendiz, nome: row.nome_aprendiz },
+            mentor: row.id_mentor ? { id: row.id_mentor, nome: row.mentor_name } : null,
+            materia: { id: row.id_materia, nome: row.nome_materia },
+            status: row.status,
             localizacao: row.localizacao,
             duvida_detalhes: row.duvida_detalhes,
-            data_abertura: row.data_abertura
+            data_abertura: row.data_abertura,
+            data_fechamento: row.data_fechamento
         }));
-        
+
     } catch (err) {
         throw new Error("Erro ao listar chamados abertos: " + err.message);
     }
@@ -61,31 +68,38 @@ const getChamadosDB = async () => {
     try {
         const query = `
             SELECT 
-                c.id, c.id_aprendiz, u.nome AS nome_aprendiz, 
-                c.id_materia, s.nome AS nome_materia, 
-                c.localizacao, c.duvida_detalhes, c.data_abertura, c.status
+                c.id, c.id_aprendiz, 
+                u_aprendiz.nome AS nome_aprendiz, 
+                c.id_mentor, u_mentor.nome AS mentor_name,
+                c.id_materia, s.nome AS nome_materia,
+                c.status, c.localizacao, c.duvida_detalhes, c.data_abertura, c.data_fechamento
             FROM 
                 chamado c
             JOIN 
-                usuario u ON c.id_aprendiz = u.id
+                usuario u_aprendiz ON c.id_aprendiz = u_aprendiz.id
+            LEFT JOIN 
+                usuario u_mentor ON c.id_mentor = u_mentor.id
             JOIN 
                 materia s ON c.id_materia = s.id
             ORDER BY 
                 c.data_abertura DESC;
         `;
         const { rows } = await pool.query(query);
-        
+
         return rows.map(row => ({
             id: row.id,
-            aprendiz: { id: row.id_aprendiz, nome: row.aprendiz_name },
-            materia: { id: row.id_materia, nome: row.materia_name },
+            aprendiz: { id: row.id_aprendiz, nome: row.nome_aprendiz },
+            mentor: row.id_mentor ? { id: row.id_mentor, nome: row.mentor_name } : null,
+            materia: { id: row.id_materia, nome: row.nome_materia },
+            status: row.status,
             localizacao: row.localizacao,
             duvida_detalhes: row.duvida_detalhes,
-            data_abertura: row.data_abertura
+            data_abertura: row.data_abertura,
+            data_fechamento: row.data_fechamento
         }));
-        
+
     } catch (err) {
-        throw new Error("Erro ao listar chamados abertos: " + err.message);
+        throw new Error("Erro ao listar chamados: " + err.message);
     }
 }
 
@@ -110,11 +124,11 @@ const getChamadoPorIdDB = async (id) => {
                 c.id = $1;
         `;
         const { rows } = await pool.query(query, [id]);
-        
+
         if (rows.length === 0) {
             throw new Error(`Chamado de ID ${id} não encontrado.`);
         }
-        
+
         // Mapeia o resultado
         const chamado = rows[0];
         return {
@@ -127,7 +141,7 @@ const getChamadoPorIdDB = async (id) => {
             data_abertura: chamado.data_abertura,
             data_fechamento: chamado.data_fechamento
         };
-        
+
     } catch (err) {
         throw new Error(`Erro ao buscar chamado por ID: ${err.message}`);
     }
@@ -143,18 +157,18 @@ const updateAceitarChamadoDB = async (id_chamado, id_mentor) => {
             RETURNING *;
         `;
         const { rows } = await pool.query(query, [id_chamado, id_mentor]);
-        
+
         if (rows.length === 0) {
             throw new Error("Chamado não pode ser aceito. Verifique se ele está Aberto e se o ID existe.");
         }
-        
+
         const updatedCall = rows[0];
         return new Chamado(
-            updatedCall.id, updatedCall.id_aprendiz, updatedCall.id_mentor, updatedCall.id_materia, 
-            updatedCall.localizacao, updatedCall.duvida_detalhes, updatedCall.status, 
+            updatedCall.id, updatedCall.id_aprendiz, updatedCall.id_mentor, updatedCall.id_materia,
+            updatedCall.localizacao, updatedCall.duvida_detalhes, updatedCall.status,
             updatedCall.data_abertura, updatedCall.data_fechamento
         );
-        
+
     } catch (err) {
         throw new Error(`Erro ao aceitar chamado: ${err.message}`);
     }
@@ -170,18 +184,18 @@ const updateFinalizarChamadoDB = async (id_chamado) => {
             RETURNING *;
         `;
         const { rows } = await pool.query(query, [id_chamado]);
-        
+
         if (rows.length === 0) {
             throw new Error("Chamado não pode ser finalizado. Verifique se ele está Aceito e se o ID existe.");
         }
 
         const finalizedCall = rows[0];
         return new Chamado(
-            finalizedCall.id, finalizedCall.id_aprendiz, finalizedCall.id_mentor, finalizedCall.id_materia, 
-            finalizedCall.localizacao, finalizedCall.duvida_detalhes, finalizedCall.status, 
+            finalizedCall.id, finalizedCall.id_aprendiz, finalizedCall.id_mentor, finalizedCall.id_materia,
+            finalizedCall.localizacao, finalizedCall.duvida_detalhes, finalizedCall.status,
             finalizedCall.data_abertura, finalizedCall.data_fechamento
         );
-        
+
     } catch (err) {
         throw new Error(`Erro ao finalizar chamado: ${err.message}`);
     }
@@ -190,13 +204,13 @@ const updateFinalizarChamadoDB = async (id_chamado) => {
 const deleteChamadoDB = async (id) => {
     try {
         const rows = await pool.query('DELETE FROM chamado WHERE id = $1', [id]);
-        
+
         if (rows.rowCount === 0) {
             throw new Error(`Chamado de ID ${id} não encontrado para exclusão.`);
         }
-        
+
         return true;
-        
+
     } catch (err) {
         throw new Error(`Erro ao deletar chamado: ${err.message}`);
     }
