@@ -1,24 +1,24 @@
 const { Router } = require('express');
-
-const { getChamadosAbertos, getChamadoPorId, createNovoChamado, updateAceitarChamado, updateFinalizarChamado, deleteChamado, getChamados } = require('../controllers/chamadoController')
+const { getChamadosAbertos, getChamadoPorId, createNovoChamado, updateAceitarChamado, updateFinalizarChamado, deleteChamado, getChamados } = require('../controllers/chamadoController');
+const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
 const rotasChamado = new Router();
 
 rotasChamado.route('/chamado')
-    .get(getChamados)
-    .post(createNovoChamado)
+    .get(authenticateToken, getChamados)
+    .post(authenticateToken, createNovoChamado)
 
 rotasChamado.route('/chamado/aberto')
-    .get(getChamadosAbertos)
+    .get(authenticateToken, getChamadosAbertos)
 
 rotasChamado.route('/chamado/aceitar/:id')
-    .put(updateAceitarChamado)
+    .put(authenticateToken, updateAceitarChamado)
 
 rotasChamado.route('/chamado/finalizar/:id')
-    .put(updateFinalizarChamado)
+    .put(authenticateToken, updateFinalizarChamado)
 
 rotasChamado.route('/chamado/:id')
-    .get(getChamadoPorId)
-    .delete(deleteChamado)
+    .get(authenticateToken, getChamadoPorId)
+    .delete(authenticateToken, authorizeAdmin, deleteChamado) // Apenas admin pode deletar
 
 module.exports = { rotasChamado };

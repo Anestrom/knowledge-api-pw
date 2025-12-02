@@ -1,6 +1,5 @@
 const { getUsuariosDB, getUsuarioPorIdDB, createNovoUsuarioDB, updateUsuarioDB, deleteUsuarioDB } = require('../usecases/usuarioUseCases');
 
-// Funções GET
 const getUsuarios = async (request, response) => {
     await getUsuariosDB()
         .then(data => response.status(200).json(data))
@@ -12,6 +11,15 @@ const getUsuarios = async (request, response) => {
 
 const getUsuarioPorId = async (request, response) => {
     const id = parseInt(request.params.id);
+    
+    // Usuário só pode ver seus próprios dados
+    if (request.user.id !== id && request.user.tipo_usuario !== 'admin') {
+        return response.status(403).json({
+            status: 'error',
+            message: 'Você só pode visualizar seus próprios dados'
+        });
+    }
+
     await getUsuarioPorIdDB(id)
         .then(data => response.status(200).json(data))
         .catch(err => response.status(404).json({ 
@@ -20,7 +28,6 @@ const getUsuarioPorId = async (request, response) => {
         }));
 };
 
-// Função POST
 const createNovoUsuario = async (request, response) => {
     await createNovoUsuarioDB(request.body)
         .then(data => response.status(201).json({
@@ -36,6 +43,14 @@ const createNovoUsuario = async (request, response) => {
 
 const updateUsuario = async (request, response) => {
     const id = parseInt(request.params.id);
+
+    // Usuário só pode editar seus próprios dados
+    if (request.user.id !== id && request.user.tipo_usuario !== 'admin') {
+        return response.status(403).json({
+            status: 'error',
+            message: 'Você só pode modificar seus próprios dados'
+        });
+    }
 
     const dataToUpdate = { id: id, ...request.body }; 
     

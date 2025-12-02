@@ -1,10 +1,10 @@
 const { pool } = require('../config');
-const Usuario = require('../entities/usuario')
+const Usuario = require('../entities/usuario');
 const bcrypt = require('bcrypt');
 
 const getUsuariosDB = async () => {
     try {
-        const { rows } = await pool.query('SELECT id, nome, email, curso, avaliacao_media, creditos_saber FROM usuario ORDER BY nome');
+        const { rows } = await pool.query('SELECT id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario FROM usuario ORDER BY nome');
 
         return rows.map((user) => new Usuario(
             user.id,
@@ -14,7 +14,8 @@ const getUsuariosDB = async () => {
             user.curso,
             user.avaliacao_media,
             user.creditos_saber,
-            null
+            null,
+            user.tipo_usuario
         ));
 
     } catch (err) {
@@ -24,7 +25,7 @@ const getUsuariosDB = async () => {
 
 const getUsuarioPorIdDB = async (id) => {
     try {
-        const { rows } = await pool.query('SELECT id, nome, email, curso, avaliacao_media, creditos_saber FROM usuario WHERE id = $1', [id]);
+        const { rows } = await pool.query('SELECT id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario FROM usuario WHERE id = $1', [id]);
 
         if (rows.length === 0) {
             throw new Error(`Usuário de ID ${id} não encontrado.`);
@@ -40,7 +41,8 @@ const getUsuarioPorIdDB = async (id) => {
             user.curso,
             user.avaliacao_media,
             user.creditos_saber,
-            null
+            null,
+            user.tipo_usuario
         );
 
     } catch (err) {
@@ -48,16 +50,16 @@ const getUsuarioPorIdDB = async (id) => {
     }
 }
 
-const createNovoUsuarioDB = async ({ nome, email, senha, curso }) => {
+const createNovoUsuarioDB = async ({ nome, email, senha, curso, tipo_usuario = 'comum' }) => {
     try {
         const senha_hash = await bcrypt.hash(senha, 10);
 
         const query = `
-            INSERT INTO usuario (nome, email, senha_hash, curso)
-            VALUES ($1, $2, $3, $4)
-            RETURNING id, nome, email, curso, avaliacao_media, creditos_saber;
+            INSERT INTO usuario (nome, email, senha_hash, curso, tipo_usuario)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario;
         `;
-        const { rows } = await pool.query(query, [nome, email, senha_hash, curso]);
+        const { rows } = await pool.query(query, [nome, email, senha_hash, curso, tipo_usuario]);
 
         const newUser = rows[0];
 
@@ -69,7 +71,8 @@ const createNovoUsuarioDB = async ({ nome, email, senha, curso }) => {
             newUser.curso,
             newUser.avaliacao_media,
             newUser.creditos_saber,
-            null
+            null,
+            newUser.tipo_usuario
         );
 
     } catch (err) {
@@ -83,7 +86,7 @@ const updateUsuarioDB = async ({ id, nome, curso }) => {
             UPDATE usuario
             SET nome = $2, curso = $3
             WHERE id = $1
-            RETURNING id, nome, email, curso, avaliacao_media, creditos_saber;
+            RETURNING id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario;
         `;
         const { rows } = await pool.query(query, [id, nome, curso]);
 
@@ -100,7 +103,8 @@ const updateUsuarioDB = async ({ id, nome, curso }) => {
             updatedUser.curso,
             updatedUser.avaliacao_media,
             updatedUser.creditos_saber,
-            null
+            null,
+            updatedUser.tipo_usuario
         );
 
     } catch (err) {
