@@ -5,13 +5,13 @@ const getUsuarios = async (request, response) => {
         .then(data => response.status(200).json(data))
         .catch(err => response.status(400).json({
             status: 'error',
-            message: err.message 
+            message: err.message
         }));
 };
 
 const getUsuarioPorId = async (request, response) => {
     const id = parseInt(request.params.id);
-    
+
     // Usuário só pode ver seus próprios dados
     if (request.user.id !== id && request.user.tipo_usuario !== 'admin') {
         return response.status(403).json({
@@ -22,7 +22,7 @@ const getUsuarioPorId = async (request, response) => {
 
     await getUsuarioPorIdDB(id)
         .then(data => response.status(200).json(data))
-        .catch(err => response.status(404).json({ 
+        .catch(err => response.status(404).json({
             status: 'error',
             message: err.message
         }));
@@ -31,7 +31,7 @@ const getUsuarioPorId = async (request, response) => {
 const createNovoUsuario = async (request, response) => {
     await createNovoUsuarioDB(request.body)
         .then(data => response.status(201).json({
-            status: "success", 
+            status: "success",
             message: "Usuário criado",
             objeto: data
         }))
@@ -52,11 +52,11 @@ const updateUsuario = async (request, response) => {
         });
     }
 
-    const dataToUpdate = { id: id, ...request.body }; 
-    
+    const dataToUpdate = { id: id, ...request.body };
+
     await updateUsuarioDB(dataToUpdate)
         .then(data => response.status(200).json({
-            status: "success", 
+            status: "success",
             message: "Usuário alterado",
             objeto: data
         }))
@@ -69,8 +69,8 @@ const updateUsuario = async (request, response) => {
 const deleteUsuario = async (request, response) => {
     const id = parseInt(request.params.id);
     await deleteUsuarioDB(id)
-        .then(() => response.status(200).json({ 
-            status: "success", 
+        .then(() => response.status(200).json({
+            status: "success",
             message: `Usuário de ID ${id} excluído com sucesso.`
         }))
         .catch(err => response.status(400).json({
@@ -80,9 +80,9 @@ const deleteUsuario = async (request, response) => {
 };
 
 module.exports = {
-    getUsuarios, 
-    getUsuarioPorId, 
-    createNovoUsuario, 
-    updateUsuario, 
+    getUsuarios,
+    getUsuarioPorId,
+    createNovoUsuario,
+    updateUsuario,
     deleteUsuario
 };

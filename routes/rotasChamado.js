@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { getChamadosAbertos, getChamadoPorId, createNovoChamado, updateAceitarChamado, updateFinalizarChamado, deleteChamado, getChamados } = require('../controllers/chamadoController');
+const { getChamadosAbertos, getChamadoPorId, createNovoChamado, updateAceitarChamado, updateFinalizarChamado, deleteChamado, getChamados, getMeusChamados } = require('../controllers/chamadoController');
 const { authenticateToken, authorizeAdmin } = require('../middleware/auth');
 
 const rotasChamado = new Router();
@@ -10,6 +10,9 @@ rotasChamado.route('/chamado')
 
 rotasChamado.route('/chamado/aberto')
     .get(authenticateToken, getChamadosAbertos) // Todos veem chamados abertos
+
+rotasChamado.route('/chamado/meus')
+    .get(authenticateToken, getMeusChamados) // Usuário vê seus próprios chamados
 
 rotasChamado.route('/chamado/aceitar/:id')
     .put(authenticateToken, updateAceitarChamado)

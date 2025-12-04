@@ -80,15 +80,31 @@ const createNovoUsuarioDB = async ({ nome, email, senha, curso, tipo_usuario = '
     }
 }
 
-const updateUsuarioDB = async ({ id, nome, curso }) => {
+const updateUsuarioDB = async ({ id, nome, curso, senha }) => {
     try {
-        const query = `
-            UPDATE usuario
-            SET nome = $2, curso = $3
-            WHERE id = $1
-            RETURNING id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario;
-        `;
-        const { rows } = await pool.query(query, [id, nome, curso]);
+        let query;
+        let params;
+
+        if (senha) {
+            const senha_hash = await bcrypt.hash(senha, 10); 
+            query = `
+                UPDATE usuario
+                SET nome = $2, curso = $3, senha_hash = $4
+                WHERE id = $1
+                RETURNING id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario;
+            `;
+            params = [id, nome, curso, senha_hash];
+        } else {
+            query = `
+                UPDATE usuario
+                SET nome = $2, curso = $3
+                WHERE id = $1
+                RETURNING id, nome, email, curso, avaliacao_media, creditos_saber, tipo_usuario;
+            `;
+            params = [id, nome, curso];
+        }
+
+        const { rows } = await pool.query(query, params);
 
         if (rows.length === 0) {
             throw new Error(`Usuário de ID ${id} não encontrado para atualização.`);
@@ -111,6 +127,7 @@ const updateUsuarioDB = async ({ id, nome, curso }) => {
         throw new Error(`Erro ao atualizar usuário: ${err.message}`);
     }
 }
+
 
 const deleteUsuarioDB = async (id) => {
     try {

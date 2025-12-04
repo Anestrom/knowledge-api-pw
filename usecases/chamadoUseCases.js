@@ -216,6 +216,48 @@ const deleteChamadoDB = async (id) => {
     }
 }
 
+const getMeusChamadosDB = async (userId) => {
+    try {
+        const query = `
+            SELECT 
+                c.id, c.id_aprendiz, 
+                u_aprendiz.nome AS nome_aprendiz, 
+                c.id_mentor, u_mentor.nome AS mentor_name,
+                c.id_materia, s.nome AS nome_materia,
+                c.status, c.localizacao, c.duvida_detalhes, c.data_abertura, c.data_fechamento
+            FROM 
+                chamado c
+            JOIN 
+                usuario u_aprendiz ON c.id_aprendiz = u_aprendiz.id
+            LEFT JOIN 
+                usuario u_mentor ON c.id_mentor = u_mentor.id
+            JOIN 
+                materia s ON c.id_materia = s.id
+            WHERE
+                c.id_aprendiz = $1 OR c.id_mentor = $1
+            ORDER BY 
+                c.data_abertura DESC;
+        `;
+        const { rows } = await pool.query(query, [userId]);
+
+        return rows.map(row => ({
+            id: row.id,
+            aprendiz: { id: row.id_aprendiz, nome: row.nome_aprendiz },
+            mentor: row.id_mentor ? { id: row.id_mentor, nome: row.mentor_name } : null,
+            materia: { id: row.id_materia, nome: row.nome_materia },
+            status: row.status,
+            localizacao: row.localizacao,
+            duvida_detalhes: row.duvida_detalhes,
+            data_abertura: row.data_abertura,
+            data_fechamento: row.data_fechamento,
+            tipo_participacao: row.id_aprendiz === userId ? 'aprendiz' : 'mentor'
+        }));
+
+    } catch (err) {
+        throw new Error("Erro ao listar meus chamados: " + err.message);
+    }
+}
+
 module.exports = {
     createNovoChamadoDB,
     getChamadosAbertosDB,
@@ -223,5 +265,6 @@ module.exports = {
     getChamadoPorIdDB,
     updateAceitarChamadoDB,
     updateFinalizarChamadoDB,
-    deleteChamadoDB
+    deleteChamadoDB,
+    getMeusChamadosDB
 };

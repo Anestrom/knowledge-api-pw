@@ -1,4 +1,4 @@
-const { createNovoChamadoDB, getChamadosAbertosDB, getChamadoPorIdDB, updateAceitarChamadoDB, updateFinalizarChamadoDB, deleteChamadoDB, getChamadosDB } = require('../usecases/chamadoUseCases')
+const { createNovoChamadoDB, getChamadosAbertosDB, getChamadoPorIdDB, updateAceitarChamadoDB, updateFinalizarChamadoDB, deleteChamadoDB, getChamadosDB, getMeusChamadosDB } = require('../usecases/chamadoUseCases')
 
 // Funções GET
 const getChamadosAbertos = async (request, response) => {
@@ -93,6 +93,16 @@ const deleteChamado = async (request, response) => {
         }));
 };
 
+const getMeusChamados = async (request, response) => {
+    const userId = request.user.id;
+    await getMeusChamadosDB(userId)
+        .then(data => response.status(200).json(data))
+        .catch(err => response.status(500).json({
+            status: 'error',
+            message: err.message
+        }));
+};
+
 module.exports = {
     createNovoChamado,
     getChamadosAbertos,
@@ -100,5 +110,6 @@ module.exports = {
     getChamadoPorId,
     updateAceitarChamado,
     updateFinalizarChamado,
-    deleteChamado
+    deleteChamado,
+    getMeusChamados
 };
